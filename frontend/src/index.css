@@ -1,0 +1,911 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f7fa;
+  color: #1f2937;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+}
+
+/* Sidebar */
+
+.sidebar {
+  width: 250px;
+  min-height: 100vh;
+  background: #111827;
+  color: white;
+  padding: 24px 16px;
+}
+
+.logo {
+  padding: 8px 12px 32px;
+}
+
+.logo h2 {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+.logo span {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-item {
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  background: transparent;
+  color: #d1d5db;
+  border-radius: 8px;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background: #374151;
+  color: white;
+}
+
+/* Main */
+
+.main-content {
+  flex: 1;
+  padding: 32px;
+}
+
+/* Topbar */
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.topbar h1 {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.topbar p {
+  color: #6b7280;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #374151;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Statistics */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 36px;
+}
+
+.stat-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.stat-card span {
+  display: block;
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.stat-card strong {
+  font-size: 30px;
+}
+
+/* Quick actions */
+
+.quick-actions h2 {
+  margin-bottom: 18px;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.action-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-card:hover {
+  border-color: #9ca3af;
+}
+
+.action-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.action-card strong {
+  font-size: 17px;
+}
+
+.action-card span:last-child {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .action-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .sidebar {
+    width: 190px;
+  }
+
+  .main-content {
+    padding: 20px;
+  }
+
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .user span {
+    display: none;
+  }
+}
+
+
+/* Attendance Page */
+
+.attendance-page {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.attendance-header {
+  margin-bottom: 24px;
+}
+
+.attendance-header h1 {
+  margin-bottom: 8px;
+}
+
+.attendance-header p {
+  color: #6b7280;
+}
+
+.camera-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.camera-container {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto 20px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #111827;
+}
+
+.camera-container video {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 400px;
+  object-fit: cover;
+}
+
+.face-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 260px;
+  height: 320px;
+  border: 3px solid white;
+  border-radius: 45%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 20px;
+  color: white;
+  text-align: center;
+  font-size: 13px;
+  background: transparent;
+}
+
+.capture-button {
+  display: block;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  border-radius: 8px;
+  background: #111827;
+  color: white;
+  font-weight: 600;
+}
+
+.capture-button:hover {
+  background: #374151;
+}
+
+.capture-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.result-card {
+  margin-top: 24px;
+  padding: 24px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+}
+
+.result-card h2 {
+  margin-bottom: 10px;
+}
+
+.result-details {
+  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-page {
+  max-width: 900px;
+}
+
+.dashboard-page h1 {
+  margin-bottom: 8px;
+}
+
+.dashboard-page p {
+  color: #6b7280;
+  margin-bottom: 24px;
+}
+
+.dashboard-button {
+  display: inline-block;
+  padding: 14px 20px;
+  border-radius: 8px;
+  background: #111827;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* =========================
+   Students Page
+   ========================= */
+
+.students-page {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.students-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.students-header h1 {
+  margin-bottom: 8px;
+}
+
+.students-header p {
+  color: #6b7280;
+}
+
+.student-count {
+  padding: 10px 16px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.students-table-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow-x: auto;
+}
+
+.students-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.students-table th,
+.students-table td {
+  padding: 16px 20px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.students-table th {
+  background: #f9fafb;
+  font-size: 14px;
+  color: #374151;
+}
+
+.students-table td {
+  color: #4b5563;
+}
+
+.students-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.students-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.students-message {
+  padding: 40px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  text-align: center;
+  color: #6b7280;
+}
+
+@media (max-width: 700px) {
+  .students-header {
+    align-items: flex-start;
+    gap: 16px;
+    flex-direction: column;
+  }
+
+  .students-table th,
+  .students-table td {
+    padding: 12px 14px;
+    white-space: nowrap;
+  }
+}
+
+/* =========================
+   Register Student Page
+   ========================= */
+
+.register-page {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.register-header {
+  margin-bottom: 24px;
+}
+
+.register-header h1 {
+  margin-bottom: 8px;
+}
+
+.register-header p {
+  color: #6b7280;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-section {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.form-section h2 {
+  margin: 0 0 20px;
+  font-size: 18px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #111827;
+  font-size: 14px;
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #6b7280;
+  box-shadow: 0 0 0 2px #f3f4f6;
+}
+
+.register-button {
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #111827;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.register-button:hover {
+  background: #374151;
+}
+
+.register-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.success-message {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #dcfce7;
+  color: #166534;
+}
+
+@media (max-width: 700px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-section {
+    padding: 18px;
+  }
+}
+
+/* =========================
+   Face Registration Page
+   ========================= */
+
+.face-registration-page {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.face-registration-header {
+  margin-bottom: 24px;
+}
+
+.face-registration-header h1 {
+  margin-bottom: 8px;
+}
+
+.face-registration-header p {
+  color: #6b7280;
+}
+
+.face-camera-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.face-camera-container {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #111827;
+}
+
+.face-camera-container video {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: scaleX(-1);
+}
+
+.face-camera-container .face-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 45%;
+  height: 65%;
+  transform: translate(-50%, -50%);
+  border: 2px solid white;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.face-camera-card .camera-status {
+  text-align: center;
+  margin: 18px 0;
+  color: #4b5563;
+}
+
+.face-camera-card .capture-button {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #111827;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.face-camera-card .capture-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================
+   Face Sample Progress
+   ========================= */
+
+.face-sample-progress {
+  max-width: 720px;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.face-sample-progress h3 {
+  margin-bottom: 6px;
+}
+
+.face-sample-progress p {
+  margin-bottom: 14px;
+  color: #6b7280;
+}
+
+.sample-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.sample-dot {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.sample-dot.captured {
+  background: #111827;
+  border-color: #111827;
+  color: white;
+}
+
+
+/* =========================
+   Capture Complete
+   ========================= */
+
+.capture-complete {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.capture-complete h3 {
+  margin-bottom: 8px;
+}
+
+.capture-complete p {
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.reset-button {
+  padding: 12px 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #111827;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reset-button:hover {
+  background: #f3f4f6;
+}
+
+/* =========================
+   Registration Complete
+   ========================= */
+
+.registration-complete {
+  max-width: 650px;
+  margin: 50px auto;
+  padding: 40px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  text-align: center;
+}
+
+.complete-icon {
+  font-size: 56px;
+  margin-bottom: 20px;
+}
+
+.registration-complete h1 {
+  margin-bottom: 12px;
+}
+
+.registration-complete > p {
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.complete-details {
+  margin: 28px 0;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 10px;
+  text-align: left;
+}
+
+.complete-details p {
+  margin: 10px 0;
+  color: #374151;
+}
+
+.registration-complete .register-button {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+
+/* =========================
+   Face Camera Card
+   ========================= */
+
+.face-camera-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.face-camera-container {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #111827;
+}
+
+.face-camera-container video {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform: scaleX(-1);
+}
+
+.face-camera-container .face-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 45%;
+  height: 65%;
+  transform: translate(-50%, -50%);
+  border: 2px solid white;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+
+/* =========================
+   Face Sample Progress
+   ========================= */
+
+.face-sample-progress {
+  max-width: 720px;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.face-sample-progress h3 {
+  margin-bottom: 6px;
+}
+
+.face-sample-progress p {
+  margin-bottom: 14px;
+  color: #6b7280;
+}
+
+.sample-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.sample-dot {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.sample-dot.captured {
+  background: #111827;
+  border-color: #111827;
+  color: white;
+}
+
+
+/* =========================
+   Camera Status
+   ========================= */
+
+.face-camera-card .camera-status {
+  text-align: center;
+  margin: 18px 0;
+  color: #4b5563;
+}
+
+
+/* =========================
+   Capture Button
+   ========================= */
+
+.face-camera-card .capture-button {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #111827;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.face-camera-card .capture-button:hover {
+  background: #374151;
+}
+
+.face-camera-card .capture-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+/* =========================
+   Mobile
+   ========================= */
+
+@media (max-width: 700px) {
+
+  .face-camera-card {
+    padding: 16px;
+  }
+
+  .face-camera-container .face-guide {
+    width: 55%;
+    height: 65%;
+  }
+
+  .sample-dot {
+    width: 34px;
+    height: 34px;
+  }
+
+  .registration-complete {
+    margin: 20px auto;
+    padding: 24px;
+  }
+
+}

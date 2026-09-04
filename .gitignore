@@ -1,19 +1,58 @@
+# =========================
 # Python
+# =========================
+
+# Virtual environments
+.venv/
+venv/
 backend/.venv/
+
+# Python cache
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 
-# Environment variables
+# =========================
+# Environment Variables
+# =========================
+
 .env
-backend/.env
+.env.*
 
-# React
+# =========================
+# React / Node
+# =========================
+
 frontend/node_modules/
 frontend/dist/
 
-# IDE
-.vscode/
+# =========================
+# IDE / Editor
+# =========================
 
-# Face data / private data
+.vscode/
+.idea/
+
+# =========================
+# OS Files
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+# Logs
+# =========================
+
+*.log
+
+# =========================
+# Face Data / Private Data
+# =========================
+
 data/
+
+# Local databases
 *.db
+*.sqlite
+*.sqlite3
