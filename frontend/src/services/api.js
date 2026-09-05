@@ -31,13 +31,17 @@ export const updateStudentStatus = async (studentId, status) => {
 };
 
 export const registerFaceSamples = async (studentId, files) => {
+  if (files.length !== 5) {
+    throw new Error("Exactly 5 face samples are required.");
+  }
+
   const formData = new FormData();
 
-  files.forEach((file) => {
-    formData.append("files", file);
+  files.forEach((file, index) => {
+    formData.append(`file${index + 1}`, file, `face-sample-${index + 1}.jpg`);
   });
 
-  const response = await api.post(`/students/${studentId}/face`, formData, {
+  const response = await api.post(`/students/${studentId}/faces`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

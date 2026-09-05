@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+
 import { createStudent, registerFaceSamples } from "../services/api";
 
 function RegisterStudent() {
@@ -116,7 +117,8 @@ function RegisterStudent() {
 
       const response = await createStudent(payload);
 
-      const newStudent = response.data.student;
+      // createStudent() already returns response.data.
+      const newStudent = response.student;
 
       setStudentId(newStudent.id);
 
@@ -410,9 +412,7 @@ function RegisterStudent() {
                   <option value="">Select Year</option>
 
                   <option value="FY">FY</option>
-
                   <option value="SY">SY</option>
-
                   <option value="TY">TY</option>
                 </select>
               </div>
@@ -430,15 +430,10 @@ function RegisterStudent() {
                   <option value="">Select Semester</option>
 
                   <option value="1">Semester 1</option>
-
                   <option value="2">Semester 2</option>
-
                   <option value="3">Semester 3</option>
-
                   <option value="4">Semester 4</option>
-
                   <option value="5">Semester 5</option>
-
                   <option value="6">Semester 6</option>
                 </select>
               </div>
@@ -483,7 +478,6 @@ function RegisterStudent() {
                 onChange={handleChange}
               >
                 <option value="active">Active</option>
-
                 <option value="inactive">Inactive</option>
               </select>
             </div>
