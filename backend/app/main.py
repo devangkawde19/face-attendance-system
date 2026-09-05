@@ -8,14 +8,14 @@ from pydantic import BaseModel
 from sqlalchemy import func, text
 from sqlalchemy.orm import Session
 
-from .database import get_db
-from .models import Student, FaceEmbedding
-from .face_service import FaceRecognitionService
-from .recognition_service import find_matching_student
 from .attendance_service import mark_attendance
+from .database import get_db
+from .face_service import FaceRecognitionService
+from .models import Attendance, FaceEmbedding, Student
+from .recognition_service import find_matching_student
 
 app = FastAPI(
-    title="Face Attendance System",
+    title="AttendVision",
     description="AI-powered face recognition attendance API",
     version="1.0.0",
 )
@@ -38,7 +38,7 @@ face_service = FaceRecognitionService()
 
 @app.get("/")
 def root():
-    return {"message": "Face Attendance System API is running"}
+    return {"message": "AttendVision API is running"}
 
 
 @app.get("/health")
@@ -50,7 +50,6 @@ def health_check():
 def database_health_check(db: Session = Depends(get_db)):
     try:
         result = db.execute(text("SELECT 1"))
-
         value = result.scalar()
 
         return {
@@ -67,6 +66,11 @@ def database_health_check(db: Session = Depends(get_db)):
         }
 
 
+# =========================================================
+# STUDENT MODELS
+# =========================================================
+
+
 class StudentCreate(BaseModel):
     student_code: str
     full_name: str
@@ -81,8 +85,22 @@ class StudentCreate(BaseModel):
     status: str = "active"
 
 
+class StudentStatusUpdate(BaseModel):
+    status: str
+
+
+# =========================================================
+# STUDENT REGISTRATION
+# =========================================================
+
+
 @app.post("/students")
 def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
+    if student_data.status not in {"active", "inactive"}:
+        raise HTTPException(
+            status_code=400, detail="Status must be either 'active' or 'inactive'."
+        )
+
     existing_student = (
         db.query(Student)
         .filter(Student.student_code == student_data.student_code)
@@ -107,8 +125,15 @@ def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
     )
 
     db.add(student)
-    db.commit()
-    db.refresh(student)
+
+    try:
+        db.commit()
+        db.refresh(student)
+
+    except Exception:
+        db.rollback()
+
+        raise HTTPException(status_code=500, detail="Unable to register student.")
 
     return {
         "message": "Student registered successfully",
@@ -128,6 +153,60 @@ def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
             "created_at": student.created_at,
         },
     }
+
+
+# =========================================================
+# UPDATE STUDENT STATUS
+# =========================================================
+
+
+@app.patch("/students/{student_id}/status")
+def update_student_status(
+    student_id: int, status_data: StudentStatusUpdate, db: Session = Depends(get_db)
+):
+    """
+    Activate or deactivate a student.
+
+    Inactive students remain in the database with their
+    face data and attendance history preserved.
+    """
+
+    if status_data.status not in {"active", "inactive"}:
+        raise HTTPException(
+            status_code=400, detail="Status must be either 'active' or 'inactive'."
+        )
+
+    student = db.query(Student).filter(Student.id == student_id).first()
+
+    if student is None:
+        raise HTTPException(status_code=404, detail="Student not found.")
+
+    student.status = status_data.status
+
+    try:
+        db.commit()
+        db.refresh(student)
+
+    except Exception:
+        db.rollback()
+
+        raise HTTPException(status_code=500, detail="Unable to update student status.")
+
+    if student.status == "active":
+        message = "Student activated successfully."
+    else:
+        message = "Student deactivated successfully."
+
+    return {
+        "message": message,
+        "student_id": student.id,
+        "status": student.status,
+    }
+
+
+# =========================================================
+# GET STUDENTS
+# =========================================================
 
 
 @app.get("/students")
@@ -180,6 +259,11 @@ def get_students(db: Session = Depends(get_db)):
     }
 
 
+# =========================================================
+# REGISTER SINGLE FACE
+# =========================================================
+
+
 @app.post("/students/{student_id}/face")
 async def register_face(
     student_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)
@@ -218,8 +302,15 @@ async def register_face(
     )
 
     db.add(face_embedding)
-    db.commit()
-    db.refresh(face_embedding)
+
+    try:
+        db.commit()
+        db.refresh(face_embedding)
+
+    except Exception:
+        db.rollback()
+
+        raise HTTPException(status_code=500, detail="Face registration failed.")
 
     return {
         "message": "Face registered successfully",
@@ -234,6 +325,11 @@ async def register_face(
             "norm": float(np.linalg.norm(embedding)),
         },
     }
+
+
+# =========================================================
+# REGISTER MULTIPLE FACES
+# =========================================================
 
 
 @app.post("/students/{student_id}/faces")
@@ -310,7 +406,7 @@ async def register_multiple_faces(
         except ValueError as e:
             raise HTTPException(
                 status_code=400,
-                detail=(f"Sample {index}: {str(e)}"),
+                detail=f"Sample {index}: {str(e)}",
             )
 
         embeddings.append(embedding)
@@ -353,6 +449,11 @@ async def register_multiple_faces(
         "samples_registered": 5,
         "embedding_dimensions": 512,
     }
+
+
+# =========================================================
+# FACE RECOGNITION
+# =========================================================
 
 
 @app.post("/recognize")
@@ -401,6 +502,11 @@ async def recognize_face(file: UploadFile = File(...), db: Session = Depends(get
     }
 
 
+# =========================================================
+# MARK ATTENDANCE BY FACE
+# =========================================================
+
+
 @app.post("/attendance/mark-by-face")
 async def mark_attendance_by_face(
     file: UploadFile = File(...), db: Session = Depends(get_db)
@@ -439,7 +545,11 @@ async def mark_attendance_by_face(
             "message": "No matching student found",
         }
 
-    attendance_result = mark_attendance(db=db, student_id=match["student_id"])
+    try:
+        attendance_result = mark_attendance(db=db, student_id=match["student_id"])
+
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))
 
     attendance = attendance_result["attendance"]
 
@@ -461,4 +571,91 @@ async def mark_attendance_by_face(
             "check_in_time": (attendance.check_in_time.isoformat()),
             "status": attendance.status,
         },
+    }
+
+
+# =========================================================
+# ATTENDANCE HISTORY
+# =========================================================
+
+
+@app.get("/attendance")
+def get_attendance(db: Session = Depends(get_db)):
+    """
+    Return all attendance records with
+    student information.
+
+    Results are ordered by newest attendance
+    first.
+    """
+
+    records = (
+        db.query(Attendance, Student)
+        .join(Student, Attendance.student_id == Student.id)
+        .order_by(Attendance.attendance_date.desc(), Attendance.check_in_time.desc())
+        .all()
+    )
+
+    attendance_list = []
+
+    for attendance, student in records:
+        attendance_list.append(
+            {
+                "id": attendance.id,
+                "student_id": student.id,
+                "student_code": student.student_code,
+                "full_name": student.full_name,
+                "email": student.email,
+                "course": student.course,
+                "department": student.department,
+                "year": student.year,
+                "semester": student.semester,
+                "section": student.section,
+                "attendance_date": str(attendance.attendance_date),
+                "check_in_time": (attendance.check_in_time.isoformat()),
+                "status": attendance.status,
+            }
+        )
+
+    return {
+        "count": len(attendance_list),
+        "attendance": attendance_list,
+    }
+
+
+# =========================================================
+# DASHBOARD STATISTICS
+# =========================================================
+
+
+@app.get("/dashboard/stats")
+def get_dashboard_stats(db: Session = Depends(get_db)):
+    """
+    Return statistics for the dashboard.
+    """
+
+    total_students = db.query(func.count(Student.id)).scalar()
+
+    registered_faces = db.query(
+        func.count(func.distinct(FaceEmbedding.student_id))
+    ).scalar()
+
+    today = date.today()
+
+    today_attendance = (
+        db.query(func.count(Attendance.id))
+        .filter(Attendance.attendance_date == today)
+        .scalar()
+    )
+
+    if total_students:
+        attendance_percentage = (today_attendance / total_students) * 100
+    else:
+        attendance_percentage = 0
+
+    return {
+        "total_students": total_students or 0,
+        "registered_faces": registered_faces or 0,
+        "today_attendance": today_attendance or 0,
+        "attendance_percentage": round(attendance_percentage, 2),
     }

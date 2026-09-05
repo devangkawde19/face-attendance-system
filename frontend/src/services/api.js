@@ -1,64 +1,71 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://127.0.0.1:8000";
-
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: "http://127.0.0.1:8000",
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// =========================================================
-// BACKEND HEALTH
-// =========================================================
-
 export const checkBackendHealth = async () => {
-  const response = await api.get("/health");
-
+  const response = await api.get("/");
   return response.data;
 };
-
-// =========================================================
-// GET STUDENTS
-// =========================================================
 
 export const getStudents = async () => {
   const response = await api.get("/students");
+  return response.data;
+};
+
+export const createStudent = async (studentData) => {
+  const response = await api.post("/students", studentData);
+  return response.data;
+};
+
+export const updateStudentStatus = async (studentId, status) => {
+  const response = await api.patch(`/students/${studentId}/status`, {
+    status,
+  });
 
   return response.data;
 };
 
-// =========================================================
-// CREATE STUDENT
-// =========================================================
-
-export const createStudent = async (studentData) => {
-  return await api.post("/students", studentData);
-};
-
-// =========================================================
-// REGISTER 5 FACE SAMPLES
-// =========================================================
-
-export const registerFaceSamples = async (studentId, samples) => {
+export const registerFaceSamples = async (studentId, files) => {
   const formData = new FormData();
 
-  samples.forEach((sample, index) => {
-    formData.append(`file${index + 1}`, sample, `face_sample_${index + 1}.jpg`);
+  files.forEach((file) => {
+    formData.append("files", file);
   });
 
-  return await api.post(`/students/${studentId}/faces`, formData);
+  const response = await api.post(`/students/${studentId}/face`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return response.data;
 };
 
-// =========================================================
-// RECOGNIZE + MARK ATTENDANCE
-// =========================================================
-
-export const recognizeAndMarkAttendance = async (imageBlob) => {
+export const recognizeAndMarkAttendance = async (file) => {
   const formData = new FormData();
+  formData.append("file", file);
 
-  formData.append("file", imageBlob, "attendance.jpg");
+  const response = await api.post("/attendance/mark-by-face", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 
-  const response = await api.post("/attendance/mark-by-face", formData);
+  return response.data;
+};
 
+export const getAttendance = async () => {
+  const response = await api.get("/attendance");
+  return response.data;
+};
+
+export const getDashboardStats = async () => {
+  const response = await api.get("/dashboard/stats");
   return response.data;
 };
 

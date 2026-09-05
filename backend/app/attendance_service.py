@@ -2,22 +2,26 @@ from datetime import date, datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from .models import Attendance
+from .models import Attendance, Student
 
 
 def mark_attendance(db: Session, student_id: int):
     """
-    Mark attendance for a student for today.
+    Mark attendance for an active student for today.
 
-    If attendance is already marked today,
-    return the existing attendance record.
+    Inactive students cannot receive new attendance.
+    Existing attendance history is preserved.
     """
 
-    today = date.today()
+    student = db.query(Student).filter(Student.id == student_id).first()
 
-    # -----------------------------------------------------
-    # 1. Check if attendance already exists today
-    # -----------------------------------------------------
+    if student is None:
+        raise ValueError("Student not found")
+
+    if student.status != "active":
+        raise ValueError("Student is inactive. Attendance cannot be marked.")
+
+    today = date.today()
 
     existing_attendance = (
         db.query(Attendance)
@@ -27,19 +31,11 @@ def mark_attendance(db: Session, student_id: int):
         .first()
     )
 
-    # -----------------------------------------------------
-    # 2. Already marked
-    # -----------------------------------------------------
-
     if existing_attendance:
         return {
             "already_marked": True,
             "attendance": existing_attendance,
         }
-
-    # -----------------------------------------------------
-    # 3. Create new attendance
-    # -----------------------------------------------------
 
     attendance = Attendance(
         student_id=student_id,
@@ -57,8 +53,6 @@ def mark_attendance(db: Session, student_id: int):
     except Exception:
         db.rollback()
 
-        # Another request may have created today's
-        # attendance at the same time.
         existing_attendance = (
             db.query(Attendance)
             .filter(
@@ -74,10 +68,6 @@ def mark_attendance(db: Session, student_id: int):
             }
 
         raise
-
-    # -----------------------------------------------------
-    # 4. Return newly created attendance
-    # -----------------------------------------------------
 
     return {
         "already_marked": False,

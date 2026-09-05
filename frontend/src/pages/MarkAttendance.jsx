@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { recognizeAndMarkAttendance } from "../services/api";
 
 function MarkAttendance() {
@@ -8,20 +9,13 @@ function MarkAttendance() {
   const [cameraError, setCameraError] = useState("");
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState(null);
-
-  // =========================================================
-  // UPDATED: CAMERA READY STATE
-  // =========================================================
-
   const [cameraReady, setCameraReady] = useState(false);
 
-  // =========================================================
-  // STOP CAMERA
-  // =========================================================
-
-  const stopCamera = () => {
+  const stopCamera = useCallback(() => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current.getTracks().forEach((track) => {
+        track.stop();
+      });
 
       streamRef.current = null;
     }
@@ -30,19 +24,68 @@ function MarkAttendance() {
       videoRef.current.srcObject = null;
     }
 
-    // UPDATED
     setCameraReady(false);
-  };
+  }, []);
 
-  // =========================================================
-  // CAMERA SETUP
-  // =========================================================
+  const startCamera = useCallback(async () => {
+    try {
+      setCameraError("");
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setCameraError("Camera access is not supported by this browser.");
+        return;
+      }
+
+      if (streamRef.current) {
+        stopCamera();
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: {
+            ideal: 1280,
+          },
+          height: {
+            ideal: 720,
+          },
+        },
+        audio: false,
+      });
+
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+
+      setCameraReady(true);
+    } catch (error) {
+      console.error("Camera error:", error);
+
+      setCameraReady(false);
+
+      setCameraError(
+        "Unable to access camera. Please allow camera permission and try again.",
+      );
+    }
+  }, [stopCamera]);
 
   useEffect(() => {
     let cancelled = false;
 
+    const videoElement = videoRef.current;
+
     const setupCamera = async () => {
       try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          if (!cancelled) {
+            setCameraError("Camera access is not supported by this browser.");
+          }
+
+          return;
+        }
+
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: "user",
@@ -66,11 +109,10 @@ function MarkAttendance() {
 
         streamRef.current = stream;
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+        if (videoElement) {
+          videoElement.srcObject = stream;
         }
 
-        // UPDATED
         setCameraReady(true);
       } catch (error) {
         console.error("Camera error:", error);
@@ -91,16 +133,18 @@ function MarkAttendance() {
       cancelled = true;
 
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current.getTracks().forEach((track) => {
+          track.stop();
+        });
 
         streamRef.current = null;
       }
+
+      if (videoElement) {
+        videoElement.srcObject = null;
+      }
     };
   }, []);
-
-  // =========================================================
-  // CAPTURE CAMERA FRAME
-  // =========================================================
 
   const captureFrame = () => {
     const video = videoRef.current;
@@ -112,7 +156,6 @@ function MarkAttendance() {
 
     if (video.videoWidth === 0 || video.videoHeight === 0) {
       setCameraError("Camera frame is not available yet.");
-
       return null;
     }
 
@@ -125,7 +168,6 @@ function MarkAttendance() {
 
     if (!context) {
       setCameraError("Unable to capture camera frame.");
-
       return null;
     }
 
@@ -142,10 +184,6 @@ function MarkAttendance() {
     });
   };
 
-  // =========================================================
-  // MARK ATTENDANCE
-  // =========================================================
-
   const handleMarkAttendance = async () => {
     try {
       setProcessing(true);
@@ -161,10 +199,6 @@ function MarkAttendance() {
       const response = await recognizeAndMarkAttendance(imageBlob);
 
       setResult(response);
-
-      // =====================================================
-      // UPDATED: STOP CAMERA AFTER RECOGNITION
-      // =====================================================
 
       if (response.recognized) {
         stopCamera();
@@ -190,12 +224,13 @@ function MarkAttendance() {
     }
   };
 
-  // =========================================================
-  // RENDER
-  // =========================================================
+  const handleStartCamera = async () => {
+    setResult(null);
+    await startCamera();
+  };
 
   return (
-    <div className="attendance-page">
+    <div className="attendance-camera-page">
       <div className="attendance-header">
         <h1>Mark Attendance</h1>
 
@@ -211,23 +246,30 @@ function MarkAttendance() {
           <div className="face-guide">Position your face inside the frame</div>
         </div>
 
-        <button
-          type="button"
-          className="capture-button"
-          onClick={handleMarkAttendance}
-          disabled={processing || !cameraReady}
-        >
-          {processing
-            ? "Recognizing..."
-            : result?.recognized
-              ? "Attendance Completed"
-              : "Capture & Mark Attendance"}
-        </button>
+        {cameraReady ? (
+          <button
+            type="button"
+            className="capture-button"
+            onClick={handleMarkAttendance}
+            disabled={processing}
+          >
+            {processing
+              ? "Recognizing..."
+              : result?.recognized
+                ? "Attendance Completed"
+                : "Capture & Mark Attendance"}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="capture-button"
+            onClick={handleStartCamera}
+            disabled={processing}
+          >
+            Start Camera
+          </button>
+        )}
       </div>
-
-      {/* ===================================================
-          RESULT
-      =================================================== */}
 
       {result && (
         <div className="result-card">
