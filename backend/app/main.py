@@ -1,17 +1,27 @@
 import cv2
+
 import numpy as np
+
 from datetime import date
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+
 from fastapi.middleware.cors import CORSMiddleware
+
 from pydantic import BaseModel
+
 from sqlalchemy import func, text
+
 from sqlalchemy.orm import Session
 
 from .attendance_service import mark_attendance
+
 from .database import get_db
+
 from .face_service import FaceRecognitionService
+
 from .models import Attendance, FaceEmbedding, Student
+
 from .recognition_service import find_matching_student
 
 app = FastAPI(
@@ -47,7 +57,9 @@ def health_check():
 
 
 @app.get("/health/database")
-def database_health_check(db: Session = Depends(get_db)):
+def database_health_check(
+    db: Session = Depends(get_db),
+):
     try:
         result = db.execute(text("SELECT 1"))
         value = result.scalar()
@@ -95,10 +107,14 @@ class StudentStatusUpdate(BaseModel):
 
 
 @app.post("/students")
-def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
+def create_student(
+    student_data: StudentCreate,
+    db: Session = Depends(get_db),
+):
     if student_data.status not in {"active", "inactive"}:
         raise HTTPException(
-            status_code=400, detail="Status must be either 'active' or 'inactive'."
+            status_code=400,
+            detail="Status must be either 'active' or 'inactive'.",
         )
 
     existing_student = (
@@ -108,7 +124,10 @@ def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
     )
 
     if existing_student:
-        raise HTTPException(status_code=409, detail="Student code already exists")
+        raise HTTPException(
+            status_code=409,
+            detail="Student code already exists",
+        )
 
     student = Student(
         student_code=student_data.student_code,
@@ -133,7 +152,10 @@ def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
     except Exception:
         db.rollback()
 
-        raise HTTPException(status_code=500, detail="Unable to register student.")
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to register student.",
+        )
 
     return {
         "message": "Student registered successfully",
@@ -162,7 +184,9 @@ def create_student(student_data: StudentCreate, db: Session = Depends(get_db)):
 
 @app.patch("/students/{student_id}/status")
 def update_student_status(
-    student_id: int, status_data: StudentStatusUpdate, db: Session = Depends(get_db)
+    student_id: int,
+    status_data: StudentStatusUpdate,
+    db: Session = Depends(get_db),
 ):
     """
     Activate or deactivate a student.
@@ -173,13 +197,17 @@ def update_student_status(
 
     if status_data.status not in {"active", "inactive"}:
         raise HTTPException(
-            status_code=400, detail="Status must be either 'active' or 'inactive'."
+            status_code=400,
+            detail="Status must be either 'active' or 'inactive'.",
         )
 
     student = db.query(Student).filter(Student.id == student_id).first()
 
     if student is None:
-        raise HTTPException(status_code=404, detail="Student not found.")
+        raise HTTPException(
+            status_code=404,
+            detail="Student not found.",
+        )
 
     student.status = status_data.status
 
@@ -190,7 +218,10 @@ def update_student_status(
     except Exception:
         db.rollback()
 
-        raise HTTPException(status_code=500, detail="Unable to update student status.")
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to update student status.",
+        )
 
     if student.status == "active":
         message = "Student activated successfully."
@@ -210,12 +241,17 @@ def update_student_status(
 
 
 @app.get("/students")
-def get_students(db: Session = Depends(get_db)):
+def get_students(
+    db: Session = Depends(get_db),
+):
     students = db.query(Student).order_by(Student.id).all()
 
     # Get the number of face samples for each student.
     embedding_counts = (
-        db.query(FaceEmbedding.student_id, func.count(FaceEmbedding.id))
+        db.query(
+            FaceEmbedding.student_id,
+            func.count(FaceEmbedding.id),
+        )
         .group_by(FaceEmbedding.student_id)
         .all()
     )
@@ -225,7 +261,10 @@ def get_students(db: Session = Depends(get_db)):
     student_list = []
 
     for student in students:
-        face_samples = face_count_map.get(student.id, 0)
+        face_samples = face_count_map.get(
+            student.id,
+            0,
+        )
 
         if face_samples >= 5:
             face_status = "registered"
@@ -266,33 +305,56 @@ def get_students(db: Session = Depends(get_db)):
 
 @app.post("/students/{student_id}/face")
 async def register_face(
-    student_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)
+    student_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
 ):
     student = db.query(Student).filter(Student.id == student_id).first()
 
     if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Student not found",
+        )
 
     if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Uploaded file must be an image")
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded file must be an image",
+        )
 
     image_bytes = await file.read()
 
     if not image_bytes:
-        raise HTTPException(status_code=400, detail="Uploaded image is empty")
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded image is empty",
+        )
 
-    image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+    image_array = np.frombuffer(
+        image_bytes,
+        dtype=np.uint8,
+    )
 
-    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    image = cv2.imdecode(
+        image_array,
+        cv2.IMREAD_COLOR,
+    )
 
     if image is None:
-        raise HTTPException(status_code=400, detail="Could not read uploaded image")
+        raise HTTPException(
+            status_code=400,
+            detail="Could not read uploaded image",
+        )
 
     try:
         embedding = face_service.get_embedding(image)
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
     embedding_list = embedding.tolist()
 
@@ -310,7 +372,10 @@ async def register_face(
     except Exception:
         db.rollback()
 
-        raise HTTPException(status_code=500, detail="Face registration failed.")
+        raise HTTPException(
+            status_code=500,
+            detail="Face registration failed.",
+        )
 
     return {
         "message": "Face registered successfully",
@@ -335,11 +400,26 @@ async def register_face(
 @app.post("/students/{student_id}/faces")
 async def register_multiple_faces(
     student_id: int,
-    file1: UploadFile = File(..., description="Face sample 1"),
-    file2: UploadFile = File(..., description="Face sample 2"),
-    file3: UploadFile = File(..., description="Face sample 3"),
-    file4: UploadFile = File(..., description="Face sample 4"),
-    file5: UploadFile = File(..., description="Face sample 5"),
+    file1: UploadFile = File(
+        ...,
+        description="Face sample 1",
+    ),
+    file2: UploadFile = File(
+        ...,
+        description="Face sample 2",
+    ),
+    file3: UploadFile = File(
+        ...,
+        description="Face sample 3",
+    ),
+    file4: UploadFile = File(
+        ...,
+        description="Face sample 4",
+    ),
+    file5: UploadFile = File(
+        ...,
+        description="Face sample 5",
+    ),
     db: Session = Depends(get_db),
 ):
     """
@@ -359,7 +439,10 @@ async def register_multiple_faces(
     student = db.query(Student).filter(Student.id == student_id).first()
 
     if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Student not found",
+        )
 
     files = [
         file1,
@@ -375,7 +458,10 @@ async def register_multiple_faces(
     # STEP 1: Validate all 5 images
     # ---------------------------------------------
 
-    for index, file in enumerate(files, start=1):
+    for index, file in enumerate(
+        files,
+        start=1,
+    ):
         if not file.content_type or not file.content_type.startswith("image/"):
             raise HTTPException(
                 status_code=400,
@@ -390,9 +476,15 @@ async def register_multiple_faces(
                 detail=(f"Sample {index}: " "uploaded image is empty"),
             )
 
-        image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+        image_array = np.frombuffer(
+            image_bytes,
+            dtype=np.uint8,
+        )
 
-        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        image = cv2.imdecode(
+            image_array,
+            cv2.IMREAD_COLOR,
+        )
 
         if image is None:
             raise HTTPException(
@@ -424,7 +516,8 @@ async def register_multiple_faces(
 
         for embedding in embeddings:
             face_embedding = FaceEmbedding(
-                student_id=student.id, embedding=embedding.tolist()
+                student_id=student.id,
+                embedding=embedding.tolist(),
             )
 
             db.add(face_embedding)
@@ -457,36 +550,67 @@ async def register_multiple_faces(
 
 
 @app.post("/recognize")
-async def recognize_face(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def recognize_face(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+):
     if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Uploaded file must be an image")
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded file must be an image",
+        )
 
     image_bytes = await file.read()
 
     if not image_bytes:
-        raise HTTPException(status_code=400, detail="Uploaded image is empty")
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded image is empty",
+        )
 
-    image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+    image_array = np.frombuffer(
+        image_bytes,
+        dtype=np.uint8,
+    )
 
-    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    image = cv2.imdecode(
+        image_array,
+        cv2.IMREAD_COLOR,
+    )
 
     if image is None:
-        raise HTTPException(status_code=400, detail="Could not read uploaded image")
+        raise HTTPException(
+            status_code=400,
+            detail="Could not read uploaded image",
+        )
 
     try:
         embedding = face_service.get_embedding(image)
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
     try:
-        match = find_matching_student(db=db, embedding=embedding, threshold=0.60)
+        match = find_matching_student(
+            db=db,
+            embedding=embedding,
+            threshold=0.60,
+        )
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
     if match is None:
-        return {"recognized": False, "message": "No matching student found"}
+        return {
+            "recognized": False,
+            "message": "No matching student found",
+        }
 
     return {
         "recognized": True,
@@ -509,34 +633,60 @@ async def recognize_face(file: UploadFile = File(...), db: Session = Depends(get
 
 @app.post("/attendance/mark-by-face")
 async def mark_attendance_by_face(
-    file: UploadFile = File(...), db: Session = Depends(get_db)
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
 ):
     if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="Uploaded file must be an image")
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded file must be an image",
+        )
 
     image_bytes = await file.read()
 
     if not image_bytes:
-        raise HTTPException(status_code=400, detail="Uploaded image is empty")
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded image is empty",
+        )
 
-    image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+    image_array = np.frombuffer(
+        image_bytes,
+        dtype=np.uint8,
+    )
 
-    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    image = cv2.imdecode(
+        image_array,
+        cv2.IMREAD_COLOR,
+    )
 
     if image is None:
-        raise HTTPException(status_code=400, detail="Could not read uploaded image")
+        raise HTTPException(
+            status_code=400,
+            detail="Could not read uploaded image",
+        )
 
     try:
         embedding = face_service.get_embedding(image)
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
     try:
-        match = find_matching_student(db=db, embedding=embedding, threshold=0.60)
+        match = find_matching_student(
+            db=db,
+            embedding=embedding,
+            threshold=0.60,
+        )
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
 
     if match is None:
         return {
@@ -546,10 +696,16 @@ async def mark_attendance_by_face(
         }
 
     try:
-        attendance_result = mark_attendance(db=db, student_id=match["student_id"])
+        attendance_result = mark_attendance(
+            db=db,
+            student_id=match["student_id"],
+        )
 
     except ValueError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(
+            status_code=403,
+            detail=str(e),
+        )
 
     attendance = attendance_result["attendance"]
 
@@ -580,7 +736,9 @@ async def mark_attendance_by_face(
 
 
 @app.get("/attendance")
-def get_attendance(db: Session = Depends(get_db)):
+def get_attendance(
+    db: Session = Depends(get_db),
+):
     """
     Return all attendance records with
     student information.
@@ -591,8 +749,14 @@ def get_attendance(db: Session = Depends(get_db)):
 
     records = (
         db.query(Attendance, Student)
-        .join(Student, Attendance.student_id == Student.id)
-        .order_by(Attendance.attendance_date.desc(), Attendance.check_in_time.desc())
+        .join(
+            Student,
+            Attendance.student_id == Student.id,
+        )
+        .order_by(
+            Attendance.attendance_date.desc(),
+            Attendance.check_in_time.desc(),
+        )
         .all()
     )
 
@@ -629,7 +793,9 @@ def get_attendance(db: Session = Depends(get_db)):
 
 
 @app.get("/dashboard/stats")
-def get_dashboard_stats(db: Session = Depends(get_db)):
+def get_dashboard_stats(
+    db: Session = Depends(get_db),
+):
     """
     Return statistics for the dashboard.
     """
@@ -657,5 +823,59 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
         "total_students": total_students or 0,
         "registered_faces": registered_faces or 0,
         "today_attendance": today_attendance or 0,
-        "attendance_percentage": round(attendance_percentage, 2),
+        "attendance_percentage": round(
+            attendance_percentage,
+            2,
+        ),
+    }
+
+
+# =========================================================
+# TODAY'S ATTENDANCE FOR DASHBOARD
+# =========================================================
+
+
+@app.get("/dashboard/today-attendance")
+def get_today_attendance(
+    db: Session = Depends(get_db),
+):
+    """
+    Return today's attendance records with
+    student information.
+
+    Results are ordered by newest check-in first.
+    """
+
+    today = date.today()
+
+    records = (
+        db.query(Attendance, Student)
+        .join(
+            Student,
+            Attendance.student_id == Student.id,
+        )
+        .filter(Attendance.attendance_date == today)
+        .order_by(Attendance.check_in_time.desc())
+        .all()
+    )
+
+    attendance_list = []
+
+    for attendance, student in records:
+        attendance_list.append(
+            {
+                "attendance_id": attendance.id,
+                "student_id": student.id,
+                "student_code": student.student_code,
+                "full_name": student.full_name,
+                "course": student.course,
+                "check_in_time": (attendance.check_in_time.isoformat()),
+                "status": attendance.status,
+            }
+        )
+
+    return {
+        "date": str(today),
+        "count": len(attendance_list),
+        "attendance": attendance_list,
     }

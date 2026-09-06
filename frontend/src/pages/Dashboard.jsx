@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-
-import { getDashboardStats } from "../services/api";
+import { getDashboardStats, getTodayAttendance } from "../services/api";
 
 function Dashboard() {
   const [stats, setStats] = useState({
@@ -10,22 +9,31 @@ function Dashboard() {
     attendance_percentage: 0,
   });
 
+  const [todayAttendance, setTodayAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [attendanceLoading, setAttendanceLoading] = useState(true);
   const [error, setError] = useState("");
+  const [attendanceError, setAttendanceError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
 
-    const fetchStats = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const data = await getDashboardStats();
+        const [statsData, attendanceData] = await Promise.all([
+          getDashboardStats(),
+          getTodayAttendance(),
+        ]);
 
         if (cancelled) {
           return;
         }
 
-        setStats(data);
+        setStats(statsData);
+        setTodayAttendance(attendanceData.attendance || []);
+
         setError("");
+        setAttendanceError("");
       } catch (err) {
         console.error(err);
 
@@ -34,14 +42,16 @@ function Dashboard() {
         }
 
         setError("Unable to load dashboard statistics.");
+        setAttendanceError("Unable to load today's attendance.");
       } finally {
         if (!cancelled) {
           setLoading(false);
+          setAttendanceLoading(false);
         }
       }
     };
 
-    fetchStats();
+    fetchDashboardData();
 
     return () => {
       cancelled = true;
@@ -53,7 +63,6 @@ function Dashboard() {
       <div className="page-header">
         <div>
           <h1>Dashboard</h1>
-
           <p>Overview of your face attendance system.</p>
         </div>
       </div>
@@ -110,6 +119,76 @@ function Dashboard() {
         <a href="/attendance/history" className="dashboard-button secondary">
           📋 Attendance History
         </a>
+      </div>
+
+      <div className="dashboard-attendance">
+        <div className="section-header">
+          <div>
+            <h2>Today's Attendance</h2>
+
+            <p>Students who have marked attendance today.</p>
+          </div>
+        </div>
+
+        {attendanceError && (
+          <div className="error-message">{attendanceError}</div>
+        )}
+
+        {attendanceLoading ? (
+          <div className="attendance-loading">
+            Loading today's attendance...
+          </div>
+        ) : todayAttendance.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">📅</div>
+
+            <h3>No attendance recorded today</h3>
+
+            <p>
+              Attendance records will appear here after students mark their
+              attendance.
+            </p>
+          </div>
+        ) : (
+          <div className="attendance-table-wrapper">
+            <table className="attendance-table">
+              <thead>
+                <tr>
+                  <th>Student Code</th>
+                  <th>Student Name</th>
+                  <th>Course</th>
+                  <th>Check-in Time</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {todayAttendance.map((record) => (
+                  <tr key={record.attendance_id}>
+                    <td>{record.student_code}</td>
+
+                    <td>{record.full_name}</td>
+
+                    <td>{record.course || "—"}</td>
+
+                    <td>
+                      {new Date(record.check_in_time).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+
+                    <td>
+                      <span className={`attendance-status ${record.status}`}>
+                        {record.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

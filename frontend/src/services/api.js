@@ -26,7 +26,6 @@ export const updateStudentStatus = async (studentId, status) => {
   const response = await api.patch(`/students/${studentId}/status`, {
     status,
   });
-
   return response.data;
 };
 
@@ -52,6 +51,7 @@ export const registerFaceSamples = async (studentId, files) => {
 
 export const recognizeAndMarkAttendance = async (file) => {
   const formData = new FormData();
+
   formData.append("file", file);
 
   const response = await api.post("/attendance/mark-by-face", formData, {
@@ -70,6 +70,11 @@ export const getAttendance = async () => {
 
 export const getDashboardStats = async () => {
   const response = await api.get("/dashboard/stats");
+  return response.data;
+};
+
+export const getTodayAttendance = async () => {
+  const response = await api.get("/dashboard/today-attendance");
   return response.data;
 };
 
