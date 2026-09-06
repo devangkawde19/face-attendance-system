@@ -26,6 +26,7 @@ export const updateStudentStatus = async (studentId, status) => {
   const response = await api.patch(`/students/${studentId}/status`, {
     status,
   });
+
   return response.data;
 };
 
