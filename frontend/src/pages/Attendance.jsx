@@ -1,27 +1,11 @@
 import { useEffect, useState } from "react";
 
 import { getAttendance } from "../services/api";
+
 function Attendance() {
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  const loadAttendance = async () => {
-    try {
-      setLoading(true);
-      setError("");
-
-      const data = await getAttendance();
-
-      setAttendance(data.attendance || []);
-    } catch (err) {
-      console.error(err);
-
-      setError("Unable to load attendance records.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -58,6 +42,22 @@ function Attendance() {
     };
   }, []);
 
+  const handleRefresh = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const data = await getAttendance();
+
+      setAttendance(data.attendance || []);
+    } catch (err) {
+      console.error(err);
+      setError("Unable to load attendance records.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) {
       return "-";
@@ -86,14 +86,13 @@ function Attendance() {
       <div className="page-header">
         <div>
           <h1>Attendance</h1>
-
           <p>View student attendance records.</p>
         </div>
 
         <button
           type="button"
           className="refresh-button"
-          onClick={loadAttendance}
+          onClick={handleRefresh}
           disabled={loading}
         >
           {loading ? "Loading..." : "↻ Refresh"}
