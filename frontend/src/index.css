@@ -70,7 +70,9 @@ nav {
 
 .main-content {
   flex: 1;
+  min-width: 0;
   padding: 32px;
+  overflow-x: hidden;
 }
 
 /* Topbar */
@@ -253,6 +255,7 @@ nav {
   height: auto;
   min-height: 400px;
   object-fit: cover;
+  transform: scaleX(-1);
 }
 
 .face-guide {
@@ -881,6 +884,22 @@ nav {
    ========================= */
 
 @media (max-width: 700px) {
+  .camera-container video {
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+
+  .face-guide {
+    width: 55%;
+    height: 65%;
+    font-size: 12px;
+  }
+
+  .camera-card {
+    padding: 16px;
+  }
+
   .face-camera-card {
     padding: 16px;
   }
@@ -1188,15 +1207,19 @@ nav {
 
 .students-table-card {
   width: 100%;
+  max-width: 100%;
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .students-table-wrapper {
-  width: 100%;
-  overflow-x: auto;
+  width: max-content;
+  min-width: 100%;
+  overflow: visible;
 }
 
 .students-table {
@@ -1285,6 +1308,19 @@ nav {
   text-align: center;
   color: #64748b;
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+}
+
+.students-table-card::-webkit-scrollbar {
+  height: 8px;
+}
+
+.students-table-card::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.students-table-card::-webkit-scrollbar-track {
+  background: #f1f5f9;
 }
 
 /* =========================================================
@@ -1773,5 +1809,496 @@ nav {
 
   .attendance-table-wrapper {
     border-radius: 8px;
+  }
+}
+
+/* =========================================================
+   APP MOBILE NAVIGATION
+   ========================================================= */
+
+@media (max-width: 650px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    padding: 14px 16px;
+  }
+
+  .logo {
+    padding: 4px 8px 14px;
+  }
+
+  .logo h2 {
+    font-size: 20px;
+  }
+
+  nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .nav-item {
+    padding: 10px 8px;
+    text-align: center;
+    font-size: 14px;
+  }
+
+  .main-content {
+    width: 100%;
+    padding: 18px 16px 28px;
+  }
+
+  .attendance-camera-page {
+    max-width: 100%;
+  }
+
+  .attendance-header h1 {
+    font-size: 28px;
+  }
+
+  .camera-card {
+    padding: 16px;
+  }
+
+  .camera-container {
+    max-width: 100%;
+  }
+
+  .camera-container video {
+    min-height: 0;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+  }
+
+  .face-guide {
+    width: 58%;
+    height: 68%;
+    padding-bottom: 12px;
+    font-size: 12px;
+  }
+
+  .capture-button {
+    max-width: 100%;
+  }
+}
+
+
+/* =========================================================
+   FINAL RESPONSIVE LAYOUT
+   Keeps the desktop layout intact and makes all pages
+   usable on phones and tablets.
+   ========================================================= */
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.app {
+  width: 100%;
+  min-width: 0;
+}
+
+.main-content {
+  min-width: 0;
+}
+
+/* Mark Attendance preview */
+.camera-container video {
+  transform: scaleX(-1);
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    padding: 24px;
+  }
+
+  .stats,
+  .dashboard-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .action-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  /* ---------- Global mobile layout ---------- */
+
+  .app {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    padding: 18px 16px;
+  }
+
+  .logo {
+    padding: 4px 12px 16px;
+  }
+
+  .logo h2 {
+    font-size: 22px;
+  }
+
+  nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 10px;
+  }
+
+  .nav-item {
+    padding: 10px 12px;
+    text-align: center;
+    min-width: 0;
+  }
+
+  .main-content {
+    width: 100%;
+    min-width: 0;
+    padding: 20px 16px;
+  }
+
+  /* ---------- General page headers ---------- */
+
+  .topbar {
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .topbar h1 {
+    font-size: 26px;
+  }
+
+  /* ---------- Dashboard ---------- */
+
+  .stats,
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .stat-card {
+    min-width: 0;
+    padding: 20px;
+  }
+
+  .dashboard-actions {
+    flex-direction: column;
+  }
+
+  .dashboard-button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .dashboard-page .page-header h1 {
+    font-size: 28px;
+  }
+
+  /* ---------- Mark Attendance ---------- */
+
+  .attendance-camera-page {
+    width: 100%;
+    max-width: none;
+  }
+
+  .attendance-header {
+    margin-bottom: 18px;
+  }
+
+  .attendance-header h1 {
+    font-size: 30px;
+  }
+
+  .attendance-header p {
+    line-height: 1.4;
+  }
+
+  .camera-card {
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .camera-container {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+    margin-bottom: 16px;
+  }
+
+  .camera-container video {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+
+  .face-guide {
+    width: 55%;
+    height: 72%;
+    padding: 0 10px 12px;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .capture-button {
+    width: 100%;
+    max-width: none;
+    padding: 14px 16px;
+    font-size: 15px;
+  }
+
+  .result-card {
+    padding: 18px;
+  }
+
+  /* ---------- Attendance history ---------- */
+
+  .attendance-page {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .attendance-page .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .attendance-page .page-header h1 {
+    font-size: 28px;
+  }
+
+  .refresh-button {
+    width: 100%;
+  }
+
+  .attendance-table-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .attendance-table {
+    min-width: 850px;
+  }
+
+  /* ---------- Dashboard attendance table ---------- */
+
+  .attendance-table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dashboard-attendance .attendance-table {
+    min-width: 650px;
+  }
+
+  /* ---------- Students ---------- */
+
+  .students-page {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .students-header {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .students-header h1 {
+    font-size: 28px;
+  }
+
+  .students-header .register-button {
+    width: 100%;
+  }
+
+  .students-toolbar {
+    width: 100%;
+  }
+
+  .student-search-input {
+    width: 100%;
+    max-width: none;
+  }
+
+  .students-table-card {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .students-table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .students-table {
+    min-width: 1050px;
+  }
+
+  .students-table th,
+  .students-table td {
+    padding: 12px 14px;
+  }
+
+  /* ---------- Student summary ---------- */
+
+  .student-summary {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  /* ---------- Register Student ---------- */
+
+  .register-page {
+    width: 100%;
+    max-width: none;
+  }
+
+  .register-header h1 {
+    font-size: 28px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-section {
+    padding: 18px;
+  }
+
+  .register-form > .register-button {
+    width: 100%;
+  }
+
+  /* ---------- Face Registration ---------- */
+
+  .face-registration-page {
+    width: 100%;
+    max-width: none;
+  }
+
+  .face-registration-header h1 {
+    font-size: 28px;
+  }
+
+  .face-camera-card {
+    padding: 16px;
+  }
+
+  .face-camera-container {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .face-camera-container video {
+    width: 100%;
+    height: auto;
+    transform: scaleX(-1);
+  }
+
+  .face-camera-container .face-guide {
+    width: 55%;
+    height: 65%;
+  }
+
+  .face-camera-card .capture-button {
+    width: 100%;
+    max-width: none;
+  }
+
+  .sample-indicators {
+    gap: 7px;
+  }
+
+  .sample-dot {
+    width: 34px;
+    height: 34px;
+  }
+
+  .registration-complete {
+    width: 100%;
+    margin: 20px auto;
+    padding: 24px 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    padding: 16px 12px;
+  }
+
+  .logo {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  nav {
+    gap: 4px 8px;
+  }
+
+  .nav-item {
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+
+  .main-content {
+    padding: 18px 12px;
+  }
+
+  .attendance-header h1,
+  .dashboard-page .page-header h1,
+  .students-header h1,
+  .register-header h1,
+  .face-registration-header h1 {
+    font-size: 26px;
+  }
+
+  .camera-card,
+  .face-camera-card {
+    padding: 12px;
+  }
+
+  .camera-container {
+    aspect-ratio: 4 / 3;
+    border-radius: 10px;
+  }
+
+  .face-guide {
+    width: 58%;
+    height: 70%;
+    font-size: 11px;
+  }
+
+  .capture-button {
+    font-size: 14px;
+  }
+
+  .stat-card {
+    padding: 18px;
   }
 }
