@@ -44,6 +44,65 @@ app.add_middleware(
 
 face_service = FaceRecognitionService()
 
+MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
+
+
+async def read_uploaded_image(
+    file: UploadFile,
+    error_prefix: str = "",
+):
+    """
+    Validate and decode an uploaded image.
+
+    Maximum allowed image size: 5 MB.
+    """
+
+    prefix = f"{error_prefix}: " if error_prefix else ""
+
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"{prefix}uploaded file must be an image",
+        )
+
+    if file.size is not None and file.size > MAX_IMAGE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=(f"{prefix}image is too large. " "Maximum allowed size is 5 MB."),
+        )
+
+    image_bytes = await file.read()
+
+    if not image_bytes:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{prefix}uploaded image is empty",
+        )
+
+    if len(image_bytes) > MAX_IMAGE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=(f"{prefix}image is too large. " "Maximum allowed size is 5 MB."),
+        )
+
+    image_array = np.frombuffer(
+        image_bytes,
+        dtype=np.uint8,
+    )
+
+    image = cv2.imdecode(
+        image_array,
+        cv2.IMREAD_COLOR,
+    )
+
+    if image is None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{prefix}could not read image",
+        )
+
+    return image
+
 
 @app.get("/")
 def root():
@@ -316,35 +375,7 @@ async def register_face(
             detail="Student not found",
         )
 
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=400,
-            detail="Uploaded file must be an image",
-        )
-
-    image_bytes = await file.read()
-
-    if not image_bytes:
-        raise HTTPException(
-            status_code=400,
-            detail="Uploaded image is empty",
-        )
-
-    image_array = np.frombuffer(
-        image_bytes,
-        dtype=np.uint8,
-    )
-
-    image = cv2.imdecode(
-        image_array,
-        cv2.IMREAD_COLOR,
-    )
-
-    if image is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Could not read uploaded image",
-        )
+    image = await read_uploaded_image(file)
 
     try:
         embedding = face_service.get_embedding(image)
@@ -461,35 +492,10 @@ async def register_multiple_faces(
         files,
         start=1,
     ):
-        if not file.content_type or not file.content_type.startswith("image/"):
-            raise HTTPException(
-                status_code=400,
-                detail=(f"Sample {index}: " "uploaded file must be an image"),
-            )
-
-        image_bytes = await file.read()
-
-        if not image_bytes:
-            raise HTTPException(
-                status_code=400,
-                detail=(f"Sample {index}: " "uploaded image is empty"),
-            )
-
-        image_array = np.frombuffer(
-            image_bytes,
-            dtype=np.uint8,
+        image = await read_uploaded_image(
+            file,
+            error_prefix=f"Sample {index}",
         )
-
-        image = cv2.imdecode(
-            image_array,
-            cv2.IMREAD_COLOR,
-        )
-
-        if image is None:
-            raise HTTPException(
-                status_code=400,
-                detail=(f"Sample {index}: " "could not read image"),
-            )
 
         try:
             embedding = face_service.get_embedding(image)
@@ -553,35 +559,7 @@ async def recognize_face(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=400,
-            detail="Uploaded file must be an image",
-        )
-
-    image_bytes = await file.read()
-
-    if not image_bytes:
-        raise HTTPException(
-            status_code=400,
-            detail="Uploaded image is empty",
-        )
-
-    image_array = np.frombuffer(
-        image_bytes,
-        dtype=np.uint8,
-    )
-
-    image = cv2.imdecode(
-        image_array,
-        cv2.IMREAD_COLOR,
-    )
-
-    if image is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Could not read uploaded image",
-        )
+    image = await read_uploaded_image(file)
 
     try:
         embedding = face_service.get_embedding(image)
@@ -635,35 +613,7 @@ async def mark_attendance_by_face(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=400,
-            detail="Uploaded file must be an image",
-        )
-
-    image_bytes = await file.read()
-
-    if not image_bytes:
-        raise HTTPException(
-            status_code=400,
-            detail="Uploaded image is empty",
-        )
-
-    image_array = np.frombuffer(
-        image_bytes,
-        dtype=np.uint8,
-    )
-
-    image = cv2.imdecode(
-        image_array,
-        cv2.IMREAD_COLOR,
-    )
-
-    if image is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Could not read uploaded image",
-        )
+    image = await read_uploaded_image(file)
 
     try:
         embedding = face_service.get_embedding(image)
