@@ -1,28 +1,23 @@
-import cv2
-
-import numpy as np
-
+import os
 from datetime import date
 
+import cv2
+import numpy as np
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
-
 from fastapi.middleware.cors import CORSMiddleware
-
 from pydantic import BaseModel
-
 from sqlalchemy import func, text
-
 from sqlalchemy.orm import Session
 
 from .attendance_service import mark_attendance
-
 from .database import get_db
-
 from .face_service import FaceRecognitionService
-
 from .models import Attendance, FaceEmbedding, Student
-
 from .recognition_service import find_matching_student
+
+load_dotenv()
+
 
 app = FastAPI(
     title="AttendVision",
@@ -31,12 +26,16 @@ app = FastAPI(
 )
 
 
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
