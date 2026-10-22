@@ -2302,3 +2302,70 @@ body {
     padding: 18px;
   }
 }
+
+/* AttendVision sidebar navigation improvements */
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.sidebar .nav-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #d2d9e7;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.sidebar nav .nav-item:hover {
+  background: rgb(255 255 255 / 7%);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.sidebar nav .nav-item.active {
+  border-color: rgb(113 132 255 / 25%);
+  background: rgb(70 95 255 / 18%);
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: inset 3px 0 0 #7184ff;
+}
+
+.sidebar .nav-item:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
+}
+
+.sidebar .logout-button {
+  margin-top: 12px;
+}
+
+.sidebar .logout-button:hover {
+  border-color: rgb(248 113 113 / 20%);
+  background: rgb(248 113 113 / 10%);
+  color: #fecaca;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar .nav-item {
+    transition: none;
+  }
+}
